@@ -69,7 +69,7 @@ Labels de teste
 Esta sem erros na epoca: 145
 Terminou por não haver mais erros
 Erros: [0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-Pesos: [[ 1.44      0.542406  1.610198 -0.339046]]
+Pesos: [[-1.43719481  0.53750211  1.6111506  -0.33895554]]
 Iniciando teste
 
 

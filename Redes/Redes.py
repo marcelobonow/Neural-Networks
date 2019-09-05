@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import numpy as np
+import random as rng
 from sklearn.model_selection import train_test_split
 
 f = open('out.txt', 'w')
@@ -34,9 +35,12 @@ print("Labels de treino \n" + y_train.to_string())
 print("Entradas de teste \n" + x_test.to_string())
 print("Labels de teste \n" + y_test.to_string())
 
-bias = 1
+bias = -1
 learnRate = 0.01
 w = np.zeros([1,4])  #tem que somar o bias, por isso 4
+rng.seed(10)
+for i in range(4):
+    w[0][i] = rng.uniform(-1,1)
 errors = np.zeros(trainQuantity)
 
 
