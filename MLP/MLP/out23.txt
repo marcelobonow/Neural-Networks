@@ -1,1 +1,0 @@
-Erro: 1.028246223307219Diferença de erro: 2.103020535493272e-09epocas: 8
