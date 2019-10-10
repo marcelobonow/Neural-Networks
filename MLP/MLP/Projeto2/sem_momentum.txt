@@ -1,4 +1,4 @@
-Versão do compilador: 3.7.1 (default, Dec 10 2018, 22:54:23) [MSC v.1915 64 bit (AMD64)]entrada:	0	esperado:	[0. 0. 1.]	obtido:	[0.         0.         1.         0.10304424 0.40096871 0.66042354]
+Versï¿½o do compilador: 3.7.1 (default, Dec 10 2018, 22:54:23) [MSC v.1915 64 bit (AMD64)]entrada:	0	esperado:	[0. 0. 1.]	obtido:	[0.         0.         1.         0.10304424 0.40096871 0.66042354]
 entrada:	1	esperado:	[1. 0. 0.]	obtido:	[1.         0.         0.         0.5920763  0.19760002 0.33082169]
 entrada:	2	esperado:	[0. 0. 1.]	obtido:	[0.         0.         1.         0.10447684 0.39627689 0.64775505]
 entrada:	3	esperado:	[0. 1. 0.]	obtido:	[0.         1.         0.         0.30419745 0.28125621 0.43825352]

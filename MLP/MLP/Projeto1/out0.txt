@@ -1,6 +1,7 @@
 Versão do compilador: 3.7.1 (default, Dec 10 2018, 22:54:23) [MSC v.1915 64 bit (AMD64)]
 Número de épocas: 91
 Erro final: 0.0007270153881074237
+Erro relativo: 0.002303121659290548
 Erro no teste: 5.812152154706959e-05
 [[0.8399     0.81351683]
  [0.6258     0.58789664]
