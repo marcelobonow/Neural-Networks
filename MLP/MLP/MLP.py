@@ -1,10 +1,15 @@
+import sys
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-treinamentoNumero = 0
+
+treinamentoNumero = 0;
 file = "out" + str(treinamentoNumero) + ".txt"
 f = open(file, 'w')
+f.write("Versão do compilador: " + sys.version)
+
+np.random.seed(treinamentoNumero)
 
 def importData(file, _nIn, _nOut):
 	dados = np.array(pd.read_excel(file))
@@ -19,9 +24,9 @@ xTeste,  dTeste,  sTeste,  nIn, nOut = importData('373923-Teste_projeto_2_MLP.xl
 
 ###caracteristicas da rede
 aprendizado = 0.1
-momentum = 0.9
+momentum = 0
 Emax = 1e-7
-epocasMax = 10000		#limite de epocas para o treino
+epocasMax = 13000		#limite de epocas para o treino
 
 #1 ocultas e 1 de saida
 camadas = 2
@@ -160,9 +165,10 @@ for i in range(size):
 		res[i, nOut + j] = y[camadas - 1][j]
 	er = 0
 	for j in range(n[camadas - 1]):
-		er = er + ((d[i][j] - y[camadas - 1][j]) ** 2)
+		er = er + ((d[i][j] - res[i][j+nOut]) ** 2)
 		E = E + 0.5 * er
 	E = E + 0.5 * er
+	f.write("entrada:\t" + str(i) +  "\tesperado:\t" + str(d[i]) + "\tobtido:\t" + str(res[i]) + "\n")
 E = E / size
 
 
