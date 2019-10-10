@@ -18,16 +18,25 @@ def GetClass(value):
         return "P1"
     else:
         return "P2"
+def SquareMeanError(data, w, label):
+    dataQuantity = len(data)
+    eqm = 0
+    for i in range(dataQuantity):
+        xb = np.hstack((bias, data.iloc[i].values))
+        u = np.dot(w[0], xb)
+        y = label.iloc[i]
 
-data = pd.read_csv('dados.csv', sep=';')
-maxEpocas = 1000
+        eqm = eqm + (y - u)**2
+    eqm = eqm/dataQuantity
+    return eqm
 
-values = data[data.columns[0:3]]
-label = data[data.columns[3]]
+data = pd.read_csv('dados.csv', sep=';', decimal = ',')
+maxEpocas = 10000
 
-# o valor do random state é modificado a cada teste, começando em 13 e subindo
-# a cada teste
-x_train, x_test, y_train, y_test = train_test_split(values, label, test_size = .3, random_state = 13)
+values = data[data.columns[0:4]]
+label = data[data.columns[4]]
+
+x_train, x_test, y_train, y_test = train_test_split(values, label, test_size = .3, random_state = 14)
 trainQuantity = len(x_train)
 testQuantity = len(x_test)
 
@@ -38,54 +47,53 @@ print("Entradas de teste \n" + x_test.to_string())
 print("Labels de teste \n" + y_test.to_string())
 
 bias = -1
-learnRate = 0.01
-w = np.zeros([1,4])  #tem que somar o bias, por isso 4
-rng.seed(10) #O valor da seed é modificado a cada teste, começando em 10
-for i in range(4):
+learnRate = 0.0025
+precision = 0.000001
+w = np.zeros([1,5])  #tem que somar o bias, por isso 4
+rng.seed(22) #O valor da seed é modificado a cada teste, começando em 10
+for i in range(5):
     w[0][i] = rng.uniform(-1,1)
     print("Peso " + str(i) + ": " + str(w[0][i]))
-errors = np.zeros(trainQuantity)
 
 
 
 completedTrain = False
-for j in range(maxEpocas):
-    finished = True
+epocas = 0
+
+while completedTrain == False:
+    eaqm = SquareMeanError(x_train, w, y_train)    
     for i in range(trainQuantity):
         xb = np.hstack((bias, x_train.iloc[i].values))
-        
-        v = np.dot(w[0], xb)
-        yr = activation(v)
-        error = y_train.iloc[i] - yr
-        errors[i] = error
-        if error != 0:
-            finished = False
+        u = np.dot(w[0], xb)
+
+        error = y_train.iloc[i] - u
         w[0] = w[0] + learnRate * error * xb
-    if finished:
-        print ("Esta sem erros na epoca: " + str(j))
+    epocas = epocas + 1
+    eqmAtual = SquareMeanError(x_train, w, y_train)
+    if np.absolute(eqmAtual - eaqm) <= precision:
         completedTrain = True
-        break
-print("Terminou por " + "não haver mais erros" if completedTrain else " número maximo de épocas")
-print("Erros: " + str(errors))
+
+print("Terminou em " + str(epocas) + " epocas")
 print("Pesos: " + str(w))
 print ("Iniciando teste\n\n")
 
-print("x0\tx1\tx2\ty\tlabel\t")
+print("x0\tx1\tx2\tx3\ty\tlabel\t")
 for i in range(testQuantity):
     label = y_test.iloc[i]
     xb = np.hstack((bias, x_test.iloc[i].values))
     v = np.dot(w[0], xb)
     y = activation(v)
 
-    print(str(x_test.iloc[i][0]) + "\t" + str(x_test.iloc[i][1]) + "\t" + str(x_test.iloc[i][2]) + "\t" + GetClass(y) + "\t" + GetClass(label))
+    print(str(x_test.iloc[i][0]) + "\t" + str(x_test.iloc[i][1]) + "\t" + str(x_test.iloc[i][2])+ "\t" + str(x_test.iloc[i][3]) + "\t" + GetClass(y) + "\t" + GetClass(label))
 
-print ("\nTestes:")
-extra_data = [[-0.3665, 0.0620, 5.9891], [-0.7842, 1.1267,5.5912], [0.3012,0.5611,5.8234],[0.7757,1.0648,8.0677],[0.1570,0.8028,6.3040], [-0.7014,1.0316,3.6005],[0.3748,0.1536,6.1537], [-0.6820,0.9404,4.4058], [-1.3970,0.7141,4.9263], [-1.8842,-0.2805,1.2548]]
+
+print ("\nTestes dados extra:")
+extra_data = [[0.9694, 0.6909, 0.4334, 3.4965], [0.5427, 1.3832,0.6390, 4.0352], [0.6081,-0.9196,0.5925, 0.1016],[-0.1618,0.4694,0.2030, 3.0117],[0.1870,-0.2578,0.6124, 1.7749], [0.4891,-0.5276,0.4378, 0.6439],[0.3777,2.0149,0.7423, 3.3932], [1.1498,-0.4067,0.2469,1.5866], [0.9325,1.0950,1.0359, 3.3591], [0.5060,1.3317,0.9222,3.7174], [0.0497,-2.0656,0.6124,-0.6585], [0.4004,3.5369,0.9766,5.3532], [-0.1874,1.3343,0.5374,3.2189], [0.5060,1.3317,0.9222,3.7174], [1.6375,-0.7911,0.7537,0.5515]]
 for i in range(len(extra_data)):
     xb = np.hstack((bias, extra_data[i]))
     v = np.dot(w[0], xb)
     y = activation(v)
 
-    print(str(extra_data[i][0]) + "\t" + str(extra_data[i][1]) + "\t" + str(extra_data[i][2]) + "\t" + GetClass(y))
+    print(str(extra_data[i][0]) + "\t" + str(extra_data[i][1]) + "\t" + str(extra_data[i][2])+ "\t" + str(extra_data[i][3]) + "\t" + GetClass(y))
 
 f.close()
