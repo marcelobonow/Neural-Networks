@@ -4,12 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-treinamentoNumero = 0
+treinamentoNumero = 0 #Nesse caso, a mudança é no momentum, então ele serve apenas como semente para o random
 file = "out" + str(treinamentoNumero) + ".txt"
 f = open(file, 'w')
-f.write("Versão do compilador: " + sys.version)
+sys.stdout = f #Em vez de jogar para o console, coloca no arquivo de texto, para facilitar para o relatório
+print("Versão do compilador: " + sys.version)
 
-np.random.seed(treinamentoNumero) #Mesma seed tanto para com momentum quanto sem momentum
+np.random.seed(treinamentoNumero) # Mesma seed tanto para com momentum quanto sem momentum, para garantir mesmos pesos
 
 def importData(file, _nIn, _nOut):
 	dados = np.array(pd.read_excel(file))
@@ -18,37 +19,42 @@ def importData(file, _nIn, _nOut):
 	x[:, _nIn:] = np.ones([len(dados),1]) * -1
 	return x, d, len(dados), _nIn, _nOut
 
-###leituraa dos dados do ex2
+#Dados de treino e de teste
 xTreino, dTreino, sTreino, nIn, nOut = importData('373926-Treinamento_projeto_2_MLP.xls', 4, 3)
 xTeste,  dTeste,  sTeste,  nIn, nOut = importData('373923-Teste_projeto_2_MLP.xls', 4, 3)
 
-###caracteristicas da rede
 aprendizado = 0.1
-momentum = 0.9
-Emax = 1e-7
-epocasMax = 13000		#limite de epocas para o treino
+momentum = 0 #0 faz o mesmo que não haver momento, para o teste com momento, a variavel recebe 0.9
+precisao = 10e-6
+#Limite de épocas para o treino, para a precisão atual não é necessário, porém para precisões maiores é essencial
+epocasMax = 13000 
 
-#1 ocultas e 1 de saida
+#1 oculta e 1 de saída
 camadas = 2
+
 n = [15, nOut]
 
+#função de ativação logística
 def g(x):
 	return 1. / (1. + np.exp(-x))
 
+#derivada de g
 def dg(x):
 	return g(x) * (1. - g(x))
 
 
 x, d, size = xTreino, dTreino, sTreino
 
-# Treino
+#Seção de treino
 w = []
-w.append(np.random.random([n[0], nIn + 1]) * 2 - 1) #inicializa os pesos entre -1 e 1
+w.append(np.random.random([n[0], nIn + 1]) * 2 - 1) #inicializa os pesos entre -1 e 1, seed setada pelo numpy
 for j in range(1, camadas):
-	w.append(np.random.random([n[j], n[j - 1] + 1]) * 2 - 1)
+
+	w.append(np.random.random([n[j], n[j - 1] + 1]) * 2 - 1)#função de ativação logística
 
 # Zera as camadas
-l = []
+l = 
+#derivada de g[]
 for j in range(camadas):
 	l.append(np.zeros(n[j]))
 
@@ -61,27 +67,28 @@ s = []
 for j in range(camadas):
 	s.append(np.ones((n[j])))
 
+#Inicia as variaveis auxiliares
 w0 = w.copy()
 wn = w.copy()
-wa1 = w.copy()
-wa2 = w.copy()
+wAnterior1 = w.copy()
+wAnterior2 = w.copy()
 
 epocas = 0
-E = 0
-Eant = 1
-Elist = []
+erro = 0
+erroAnterior = precisao+1 # não precisa ser 1, apenas maior que precisão, para entrar no while
+listaErro = [] #Para gerar gráfico
 
-while (abs(Eant - E) > Emax and epocas < epocasMax):
-    Eant = E
-    E = 0
+while (abs(erroAnterior - erro) > precisao and epocas < epocasMax):
+    erroAnterior = erro
+    erro = 0
 
-    print("Epoca: " + str(epocas) + " Erro: " + str(Eant))
+#Tanto para saber que esta rodando quanto para confirmar o gráfico
+    print("Epoca: " + str(epocas) + " Erro: " + str(erroAnterior))
 
     for i in range(size):
-        wa2 = wa1.copy()
-        wa1 = w.copy()
+        wAnterior2 = wAnterior1.copy()
+        wAnterior1 = w.copy()
 
-		############################## Forward
         l[0] = np.dot(w[0], x[i])
         for j in range(n[0]):
             y[0][j] = g(l[0][j])
@@ -91,7 +98,7 @@ while (abs(Eant - E) > Emax and epocas < epocasMax):
             for j in range(n[c]):
                 y[c][j] = g(l[c][j])
 
-		############################## Backward ###
+		#Backward
         c = camadas - 1
         for j in range(n[c]):
             s[c][j] = (d[i][j] - y[c][j]) * dg(l[c][j])
@@ -108,10 +115,9 @@ while (abs(Eant - E) > Emax and epocas < epocasMax):
 
 
         for c in range(camadas):
-            w[c] = wn[c] + momentum * (wa1[c] - wa2[c])
+            w[c] = wn[c] + momentum * (wAnterior1[c] - wAnterior2[c])
 
     for i in range(size):
-		############################## Forward ###
         l[0] = np.dot(w[0], x[i])
         for j in range(n[0]):
             y[0][j] = g(l[0][j])
@@ -124,31 +130,30 @@ while (abs(Eant - E) > Emax and epocas < epocasMax):
         er = 0
         for j in range(nOut):
             er = er + ((d[i][j] - y[camadas - 1][j]) ** 2)
-        E = E + 0.5 * er
-    E = E / size
-    Elist.append(E)
+        erro = erro + 0.5 * er
+    erro = erro / size
+    listaErro.append(erro)
     epocas = epocas + 1
 
 
-############################################################
-############  Teste
+
+#Seção de teste
 x, d, size = xTeste,  dTeste,  sTeste
 
-res = np.zeros([size, 2 * nOut])
-res[:, :nOut] = d
-resSat = res.copy()
-E = 0
+resultado = np.zeros([size, 2 * nOut])
+resultado[:, :nOut] = d
+resultadoClassificado = resultado.copy()
+erro = 0
 
-l = []		#l = [np.zeros(n[0]), np.zeros(n[1])]
+l = []
 for j in range(camadas):
 	l.append(np.zeros(n[j]))
-y = []		#y = [np.zeros(n[0]+1), np.zeros(n[1])]
+y = []
 for j in range(camadas - 1):
 	y.append(np.zeros(n[j] + 1))
 y.append(np.zeros(n[camadas - 1] + 1))
 
 for i in range(size):
-	############################## Forward ###
 	l[0] = np.dot(w[0], x[i])
 	for j in range(n[0]):
 		y[0][j] = g(l[0][j])
@@ -159,23 +164,27 @@ for i in range(size):
 			y[c][j] = g(l[c][j])
 	for j in range(n[camadas - 1]):
 		if y[camadas - 1][j] < 0.5:
-			resSat[i, nOut + j] = 0
+			resultadoClassificado[i, nOut + j] = 0
 		else:
-			resSat[i, nOut + j] = 1
-		res[i, nOut + j] = y[camadas - 1][j]
+			resultadoClassificado[i, nOut + j] = 1
+		resultado[i, nOut + j] = y[camadas - 1][j]
 	er = 0
 	for j in range(n[camadas - 1]):
-		er = er + ((d[i][j] - res[i][j+nOut]) ** 2)
-		E = E + 0.5 * er
-	E = E + 0.5 * er
-	f.write("entrada:\t" + str(i) +  "\tesperado:\t" + str(d[i]) + "\tobtido:\t" + str(res[i]) + "\n")
-E = E / size
+		er = er + ((d[i][j] - resultado[i][j+nOut]) ** 2)
+		erro = erro + 0.5 * er #Apesar de na classificação não haver diferença, nos valores em si há
+	erro = erro + 0.5 * er
+	print("entrada:\t" + str(i) +  "\tesperado:\t" + str(d[i]) + "\tobtido:\t" + str(resultado[i]) + "\n") #Resultado do teste, para a tabela e matriz de confusão
+erro = erro / size
 
 
-print(np.matrix(res))
+print(np.matrix(resultado))
 
-print('Eqm: ' + str(E) + '    dEqm: ' + str(abs(Elist[len(Elist) - 1] - Elist[len(Elist) - 2])) + '    epocas: ' + str(epocas))
+#Erros do teste
+print('Eqm: ' + str(erro))
+print('dEqm: ' + str(abs(listaErro[len(listaErro) - 1] - listaErro[len(listaErro) - 2]))) #Se tiver sido bloqueado pelo número máximo de épocas
+print('epocas: ' + str(epocas))
 
-plt.plot(Elist)
+#Plota num gráfico a lista de erros
+plt.plot(listaErro)
 plt.ylabel('Elist')
 plt.show()

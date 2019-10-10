@@ -3,184 +3,124 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-treinamentoNumero = 0 #Nesse caso, a mudança é no momentum, então ele serve apenas como semente para o random
-file = "out" + str(treinamentoNumero) + ".txt"
+treinamentoNumero = int(input()) #para facilitar os treinos
+file = "out" + str(treinamentoNumero) + ".txt" #coloca em um arquivo por teste
 f = open(file, 'w')
-sys.stdout = f #Em vez de jogar para o console, coloca no arquivo de texto, para facilitar para o relatório
+sys.stdout = f
+
 print("Versão do compilador: " + sys.version)
 
-np.random.seed(treinamentoNumero) # Mesma seed tanto para com momentum quanto sem momentum, para garantir mesmos pesos
-
-def importData(file, _nIn, _nOut):
-	dados = np.array(pd.read_excel(file))
-	d = dados[:, _nIn:].copy()
-	x = dados[:, :_nIn + 1].copy()
-	x[:, _nIn:] = np.ones([len(dados),1]) * -1
-	return x, d, len(dados), _nIn, _nOut
-
-#Dados de treino e de teste
-xTreino, dTreino, sTreino, nIn, nOut = importData('373926-Treinamento_projeto_2_MLP.xls', 4, 3)
-xTeste,  dTeste,  sTeste,  nIn, nOut = importData('373923-Teste_projeto_2_MLP.xls', 4, 3)
+np.random.seed(treinamentoNumero) #O valor da seed é modificado a cada teste, começando em 0
 
 aprendizado = 0.1
-momentum = 0 #0 faz o mesmo que não haver momento, para o teste com momento, a variavel recebe 0.9
-precisao = 10e-6
-#Limite de épocas para o treino, para a precisão atual não é necessário, porém para precisões maiores é essencial
-epocasMax = 13000 
+eMax = 10e-6
 
-#1 oculta e 1 de saída
-camadas = 2
+inputQuantity  = 3
+outputQuantity = 1
+#1 oculta e 1 de saida
+camadas = 2         
+n = [10, outputQuantity]
 
-n = [15, nOut]
 
+dados = np.array(pd.read_excel('373925-Treinamento_projeto_1_MLP.xls'))
+quantidadeAmostras = len(dados)
+d = dados[:, 3]
+x = np.ones([len(dados), len(dados[0])])
+x[:, 3] = x[:, 3]*-1
+x[:, :3] = dados[:, :3]
+
+
+#função de ativação logística
 def g(x):
-	return 1. / (1. + np.exp(-x))
+	return 1. / (1. + np.exp(-x))	
 
+#derivada de g
 def dg(x):
-	return g(x) * (1. - g(x))
-
-
-x, d, size = xTreino, dTreino, sTreino
-
+	return g(x)*(1-g(x))
+		
+#-----------------------------------------------------
 #Seção de treino
-w = []
-w.append(np.random.random([n[0], nIn + 1]) * 2 - 1) #inicializa os pesos entre -1 e 1, seed setada pelo numpy
-for j in range(1, camadas):
-	w.append(np.random.random([n[j], n[j - 1] + 1]) * 2 - 1)
+w1 = np.random.random([10, 4])*2-1 # inicializa os pesos aleatoriamente entre -1 e 1
+w2 = np.random.random(11)*2-1 #inicializa os pesos aleatoriamente entre -1 e 1
 
-# Zera as camadas
-l = []
-for j in range(camadas):
-	l.append(np.zeros(n[j]))
+l1 = np.zeros(10)
+l2 = 0
 
-y = []
-for j in range(camadas - 1):
-	y.append(np.zeros(n[j] + 1))
-y.append(np.zeros(n[camadas - 1]))
-
-s = []
-for j in range(camadas):
-	s.append(np.ones((n[j])))
-
-#Inicia as variaveis auxiliares
-w0 = w.copy()
-wn = w.copy()
-wAnterior1 = w.copy()
-wAnterior2 = w.copy()
+y1 = np.zeros(11)
+y2 = 0
+wn1 = w1.copy()
+wn2 = w2.copy()
 
 epocas = 0
-erro = 0
-erroAnterior = precisao+1 # não precisa ser 1, apenas maior que precisão, para entrar no while
-listaErro = [] #Para gerar gráfico
+error = 0
+errorAnterior = 1
+listaErros = []
 
-while (abs(erroAnterior - erro) > precisao and epocas < epocasMax):
-    erroAnterior = erro
-    erro = 0
+s1 = np.ones((10))
 
-#Tanto para saber que esta rodando quanto para confirmar o gráfico
-    print("Epoca: " + str(epocas) + " Erro: " + str(erroAnterior))
+while (abs(errorAnterior-error)>eMax and epocas < 3000):
+	errorAnterior = error
+	error = 0
 
-    for i in range(size):
-        wAnterior2 = wAnterior1.copy()
-        wAnterior1 = w.copy()
+	for k in range(200):
+		l1 = np.dot(w1, x[k])
+		for i in range(10): y1[i] = g(l1[i])
+		y1[10] = -1
+		l2 = np.dot(w2, y1)
+		y2 = g(l2)
 
-        l[0] = np.dot(w[0], x[i])
-        for j in range(n[0]):
-            y[0][j] = g(l[0][j])
-        y[0][n[0]] = -1
-        for c in range(1, camadas):
-            l[c] = np.dot(w[c], y[c - 1])
-            for j in range(n[c]):
-                y[c][j] = g(l[c][j])
+		#Backward 
+		s2 = (d[k] - y2) * dg(l2)
+		wn2 = w2 + (aprendizado * s2 * y1)
+		
+		for i in range(10):
+			s1[i] = (s2 * w2[i]) * dg(l1[i])
+			wn1[i] = w1[i] + (aprendizado * s1[i] * x[k])
 
-		#Backward
-        c = camadas - 1
-        for j in range(n[c]):
-            s[c][j] = (d[i][j] - y[c][j]) * dg(l[c][j])
-            wn[c][j] = w[c][j] + (aprendizado * s[c][j] * y[c - 1][j])
+		w1 = wn1
+		w2 = wn2
 
-        for c in range(camadas - 2, 0, -1):
-            for j in range(n[c]):
-                s[c][j] = np.dot(s[c + 1], w[c + 1][:, j]) * dg(l[c][j])
-                wn[c][j] = w[c][j] + (aprendizado * s[c][j] * y[c - 1][j])
-
-        for j in range(n[0]):
-            s[0][j] = np.dot(s[1], w[1][:, j]) * dg(l[0][j])
-            wn[0][j] = w[0][j] + (aprendizado * s[0][j] * x[i])
-
-
-        for c in range(camadas):
-            w[c] = wn[c] + momentum * (wAnterior1[c] - wAnterior2[c])
-
-    for i in range(size):
-        l[0] = np.dot(w[0], x[i])
-        for j in range(n[0]):
-            y[0][j] = g(l[0][j])
-        y[0][n[0]] = -1
-        for c in range(1, camadas):
-            l[c] = np.dot(w[c], y[c - 1])
-            for j in range(n[c]):
-                y[c][j] = g(l[c][j])
-
-        er = 0
-        for j in range(nOut):
-            er = er + ((d[i][j] - y[camadas - 1][j]) ** 2)
-        erro = erro + 0.5 * er
-    erro = erro / size
-    listaErro.append(erro)
-    epocas = epocas + 1
-
-
+		error = error + 0.5*((d[k] - y2)**2)
+	error = error / 200
+	listaErros.append(error)
+	epocas = epocas +1
+print ("Número de épocas: " + str(epocas))
+print ("Erro final: " + str(error)) #error é o eqm
 
 #Seção de teste
-x, d, size = xTeste,  dTeste,  sTeste
+dadosTeste = np.array(pd.read_excel('373922-Teste_projeto_1_MLP.xls'))
+quantidadeTeste = len(dadosTeste)
+dt = dadosTeste[:, 3]
+xt = np.ones([len(dadosTeste), len(dadosTeste[0])])
+xt[:, 0] = xt[:, 0]*-1
+xt[:, 1:] = dadosTeste[:, :3]
 
-resultado = np.zeros([size, 2 * nOut])
-resultado[:, :nOut] = d
-resultadoClassificado = resultado.copy()
-erro = 0
+dt = d[:20]
+xt = x[:20,:]
 
-l = []
-for j in range(camadas):
-	l.append(np.zeros(n[j]))
-y = []
-for j in range(camadas - 1):
-	y.append(np.zeros(n[j] + 1))
-y.append(np.zeros(n[camadas - 1] + 1))
+res = np.zeros([2,quantidadeTeste])
+res[0,:] = dt
+l1t = np.zeros(10)
+y1t = np.zeros(11)
 
-for i in range(size):
-	l[0] = np.dot(w[0], x[i])
-	for j in range(n[0]):
-		y[0][j] = g(l[0][j])
-	y[0][n[0]] = -1
-	for c in range(1, camadas):
-		l[c] = np.dot(w[c], y[c - 1])
-		for j in range(n[c]):
-			y[c][j] = g(l[c][j])
-	for j in range(n[camadas - 1]):
-		if y[camadas - 1][j] < 0.5:
-			resultadoClassificado[i, nOut + j] = 0
-		else:
-			resultadoClassificado[i, nOut + j] = 1
-		resultado[i, nOut + j] = y[camadas - 1][j]
-	er = 0
-	for j in range(n[camadas - 1]):
-		er = er + ((d[i][j] - resultado[i][j+nOut]) ** 2)
-		erro = erro + 0.5 * er #Apesar de na classificação não haver diferença, nos valores em si há
-	erro = erro + 0.5 * er
-	print("entrada:\t" + str(i) +  "\tesperado:\t" + str(d[i]) + "\tobtido:\t" + str(resultado[i]) + "\n") #Resultado do teste, para a tabela e matriz de confusão
-erro = erro / size
+error = 0
+for k in range(quantidadeTeste):			
+    l1t = np.dot(w1, xt[k])
+    for i in range(10): y1t[i] = g(l1t[i])
+    y1t[10] = -1
+    l2t = np.dot(w2, y1t)
+    y2t =  g(l2t)
+    res[1,k] = y2t
+    error = error + 0.5*((dt[k] - y2t)**2)
+error = error/200
+print("Erro no teste: " + str(error)); #error é o eqm do teste
+    
 
-
-print(np.matrix(resultado))
-
-#Erros do teste
-print('Eqm: ' + str(erro))
-print('dEqm: ' + str(abs(listaErro[len(listaErro) - 1] - listaErro[len(listaErro) - 2]))) #Se tiver sido bloqueado pelo número máximo de épocas
-print('epocas: ' + str(epocas))
+print(np.matrix(res.T))
 
 #Plota num gráfico a lista de erros
-plt.plot(listaErro)
-plt.ylabel('Elist')
+plt.plot(listaErros)
+plt.title("Resultado do Treino")
+plt.ylabel('Erro')
+plt.xlabel("Épocas");
 plt.show()
