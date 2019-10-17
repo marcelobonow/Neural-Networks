@@ -16,7 +16,7 @@ def importData(file, _nIn, _nOut):
 	dados = np.array(pd.read_excel(file))
 	d = dados[:, _nIn:].copy()
 	x = dados[:, :_nIn + 1].copy()
-	x[:, _nIn:] = np.ones([len(dados),1]) * -1
+	x[:, _nIn:] = -1
 	return x, d, len(dados), _nIn, _nOut
 
 #Dados de treino e de teste
@@ -53,7 +53,7 @@ for j in range(1, camadas):
 	w.append(np.random.random([n[j], n[j - 1] + 1]) * 2 - 1)#função de ativação logística
 
 # Zera as camadas
-l = 
+l = []
 #derivada de g[]
 for j in range(camadas):
 	l.append(np.zeros(n[j]))
