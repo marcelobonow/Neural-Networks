@@ -14,23 +14,29 @@ class Network:
         self.inputSize = entry
         self.outputSize = 1
         self.x = np.zeros(entry)
+        self.lastEqm = 1
+        self.eqm = 0
+        self.era = 0
+        self.errorList = []
         self.allX = np.zeros(shape=(trainLength, entry))
+        self.y1 = np.zeros(shape=(trainLength, self.hiddenSize))
+        self.y2 = np.zeros(shape=(trainLength, self.outputSize))
         self.w1 = np.random.randn(self.inputSize, self.hiddenSize) # da entrada variavel até a cama escondida
         self.w2 = np.random.randn(self.hiddenSize, self.outputSize) # da camada escondida até a saida
     
     def feedFoward(self, y):
         results = np.zeros(shape=(len(y),1))
         for i in range(len(y)):
-            self.y1 = sigmoid(np.dot(self.x, self.w1)) #Entrada para escondida
-            self.y2 = sigmoid(np.dot(self.y1, self.w2)) # produto da camada escondida para a saida
-            results[i] = y[i] - self.y2
+            self.y1[i] = sigmoid(np.dot(self.x, self.w1)) #Entrada para escondida
+            self.y2[i] = sigmoid(np.dot(self.y1[i], self.w2)) # produto da camada escondida para a saida
+            results[i] = self.y2[i]
             self.allX[i] = self.x
-            self.shiftInput(self.y2)
+            self.shiftInput(self.y2[i])
         return results
 
     def backward(self, x, y, output):
         self.error = y - output
-        self.delta = self.error * sigmoid(output)
+        self.delta = self.error * dSigmoid(output)
         self.y1_error = self.delta.dot(self.w2.T)
         self.y1_delta = self.y1_error * dSigmoid(self.y1)
         self.w1 += x.T.dot(self.y1_delta) #Ajusta de input para escondida
@@ -42,9 +48,16 @@ class Network:
         self.x[self.inputSize - 1] = newResult
 
     def train(self, y):
+        self.lastEqm = self.eqm
         output = self.feedFoward(y)
         self.backward(self.allX,y,output)
-        shiftInput(output)
+        erro = 0
+        for i in range(len(y)):
+            erro = erro + 0.5 * ((y[i] - output[i]) ** 2)
+        self.eqm = erro / len(y)
+        self.errorList.append(self.eqm)
+        print("erro na era: " + str(self.era) + "  " + str(self.eqm))
+        self.era += 1
 
 def importData(file):
     d = np.array(pd.read_excel(file))
@@ -73,20 +86,18 @@ dTest, testQuantity = importData('373924-Teste_projeto_3_MLP.xls')
 
 firstNetwork = Network(trainQuantity, 5, 10, 0.1, 0, 10e-6, 13000)
 
-for i in range(30):
+while (abs(firstNetwork.lastEqm - firstNetwork.eqm) > firstNetwork.precision and firstNetwork.era < firstNetwork.maxEra):
     firstNetwork.train(dTrain)
 
-epocas = 0
-erro = 0
-erroAnterior = precisao + 1 # não precisa ser 1, apenas maior que precisão, para entrar no while
-listaErro = [] #Para gerar gráfico
 
 ##Erros do teste
 #print('Eqm: ' + str(erro))
-#print('dEqm: ' + str(abs(listaErro[len(listaErro) - 1] - listaErro[len(listaErro) - 2]))) #Se tiver sido bloqueado pelo número máximo de épocas
+#print('dEqm: ' + str(abs(listaErro[len(listaErro) - 1] -
+#listaErro[len(listaErro) - 2]))) #Se tiver sido bloqueado pelo número máximo
+#de épocas
 #print('epocas: ' + str(epocas))
 
 ##Plota num gráfico a lista de erros
-#plt.plot(listaErro)
-#plt.ylabel('Elist')
-#plt.show()
+plt.plot(firstNetwork.errorList)
+plt.ylabel('Error')
+plt.show()

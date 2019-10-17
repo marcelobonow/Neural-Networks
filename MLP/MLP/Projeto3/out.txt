@@ -1,0 +1,4 @@
+Versão do compilador: 3.7.1 (default, Dec 10 2018, 22:54:23) [MSC v.1915 64 bit (AMD64)]
+erro na era: 0  [0.1692048]
+erro na era: 1  [0.5]
+erro na era: 2  [0.5]
