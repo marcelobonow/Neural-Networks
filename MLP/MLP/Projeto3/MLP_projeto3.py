@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 class Network:
 
-    def __init__(self,entry, n1, learnRate, momentum, precision, maxEra=1000):
+    def __init__(self, trainLength, entry, n1, learnRate, momentum, precision, maxEra=1000):
         self.learnRate = learnRate
         self.momentum = momentum
         self.precision = precision
@@ -14,17 +14,19 @@ class Network:
         self.inputSize = entry
         self.outputSize = 1
         self.x = np.zeros(entry)
+        self.allX = np.zeros(shape=(trainLength, entry))
         self.w1 = np.random.randn(self.inputSize, self.hiddenSize) # da entrada variavel até a cama escondida
         self.w2 = np.random.randn(self.hiddenSize, self.outputSize) # da camada escondida até a saida
-
-    def train(self):
-        self.era = 0
-        self.em = 0
     
-    def feedFoward(self, x):
-        self.y1 = sigmoid(np.dot(x, self.w1))
-        self.y2 = sigmoid(np.dot(self.y1, self.w2)) #produto da camada escondida para a saida
-        return self.y2
+    def feedFoward(self, y):
+        results = np.zeros(shape=(len(y),1))
+        for i in range(len(y)):
+            self.y1 = sigmoid(np.dot(self.x, self.w1)) #Entrada para escondida
+            self.y2 = sigmoid(np.dot(self.y1, self.w2)) # produto da camada escondida para a saida
+            results[i] = y[i] - self.y2
+            self.allX[i] = self.x
+            self.shiftInput(self.y2)
+        return results
 
     def backward(self, x, y, output):
         self.error = y - output
@@ -39,9 +41,9 @@ class Network:
             self.x[i - 1] = self.x[i]
         self.x[self.inputSize - 1] = newResult
 
-    def train(self, x, y):
-        output = self.feedFoward(x)
-        self.backward(x,y,output)
+    def train(self, y):
+        output = self.feedFoward(y)
+        self.backward(self.allX,y,output)
         shiftInput(output)
 
 def importData(file):
@@ -69,10 +71,10 @@ np.random.seed(seed)
 dTrain, trainQuantity = importData('373928-Treinamento_projeto_3_MLP.xls')
 dTest, testQuantity = importData('373924-Teste_projeto_3_MLP.xls')
 
-firstNetwork = Network(5, 10, 0.1, 0, 10e-6, 13000)
+firstNetwork = Network(trainQuantity, 5, 10, 0.1, 0, 10e-6, 13000)
 
 for i in range(30):
-    firstNetwork.train(firstNetwork.x, dTrain)
+    firstNetwork.train(dTrain)
 
 epocas = 0
 erro = 0
