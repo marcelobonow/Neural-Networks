@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from numpy import savetxt
 
-mlp = MLPClassifier(hidden_layer_sizes=(1500, 1200), max_iter=10000,solver='sgd', verbose=True, tol=1e-4, learning_rate_init=0.0001)
+mlp = MLPClassifier(hidden_layer_sizes=(397,), max_iter=10000,solver='sgd', verbose=True, tol=1e-4, learning_rate_init=0.0001)
 
 #lista_dados_train = np.array(pd.read_csv("mnist_10000.csv", sep=','))
 #lista_dados_train = np.array(pd.read_csv("mnist_60000.csv", sep=','))

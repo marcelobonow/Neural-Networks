@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>2bb3d9c3-afbd-4c80-b127-43c5ceeb2d2d</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>classificadorMNIST.py</StartupFile>
+    <StartupFile>digitos.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
