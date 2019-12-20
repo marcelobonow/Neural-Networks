@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
 from sklearn.neural_network import MLPClassifier
-from sklearn.externals import joblib
+import pickle
 
-mlp = joblib.load('mlp.pkl')
-peso0 = np.array(pd.read_csv("pesos0.csv", sep=','))
-peso1 = np.array(pd.read_csv("pesos1.csv", sep=','))
-peso = np.array([peso0, peso1]).tolist()
+with open('mlp.pkl', 'rb') as f:
+    mlp = pickle.load(f)
+#peso0 = np.array(pd.read_csv("pesos0.csv", sep=','))
+#peso1 = np.array(pd.read_csv("pesos1.csv", sep=','))
+#peso = np.array([peso0, peso1]).tolist()
 #mlp.coefs_ = peso
 #mlp.n_outputs_ = 10
 #mlp.n_layers_ = 1
