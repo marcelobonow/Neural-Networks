@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
 from sklearn.neural_network import MLPClassifier
-import pickle
+from joblib import load
 
-with open('mlp.pkl', 'rb') as f:
-    mlp = pickle.load(f)
+mlp = load("mlp.joblib")
 #peso0 = np.array(pd.read_csv("pesos0.csv", sep=','))
 #peso1 = np.array(pd.read_csv("pesos1.csv", sep=','))
 #peso = np.array([peso0, peso1]).tolist()
