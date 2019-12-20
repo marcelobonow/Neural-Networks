@@ -13,7 +13,7 @@ mlp = MLPClassifier(hidden_layer_sizes=(397,), max_iter=10000,solver='sgd', verb
 
 #lista_dados_train = np.array(pd.read_csv("mnist_10000.csv", sep=','))
 #lista_dados_train = np.array(pd.read_csv("mnist_60000.csv", sep=','))
-lista_dados_train = np.array(pd.read_csv("mnist_10000.csv", sep=','))
+lista_dados_train = np.array(pd.read_csv("mnist_60000.csv", sep=','))
 y_train = lista_dados_train[:,0]
 X_train = lista_dados_train[:,1:785]
 
@@ -23,12 +23,12 @@ lista_dados_test = np.array(pd.read_csv("mnist_10000.csv", sep=','))
 
 #mlp.fit(X_train, y_train)
 kf = KFold(n_splits=3)
-kf.get_n_splits(lista_dados_test)
-for train_index, test_index in kf.split(lista_dados_test):
-	y_train = lista_dados_test[train_index][:,0]
-	X_train = lista_dados_test[train_index][:,1:785]
-	y_test = lista_dados_test[test_index][:,0]
-	X_test = lista_dados_test[test_index][:,1:785]
+kf.get_n_splits(lista_dados_train)
+for train_index, test_index in kf.split(lista_dados_train):
+	y_train = lista_dados_train[train_index][:,0]
+	X_train = lista_dados_train[train_index][:,1:785]
+	y_test = lista_dados_train[test_index][:,0]
+	X_test = lista_dados_train[test_index][:,1:785]
 	mlp.fit(X_train, y_train)
 	print("Current KFolds score: %f" % mlp.score(X_test, y_test))
 
