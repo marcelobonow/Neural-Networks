@@ -6,6 +6,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
+from sklearn.externals import joblib
 from numpy import savetxt
 
 mlp = MLPClassifier(hidden_layer_sizes=(397,), max_iter=10000,solver='sgd', verbose=True, tol=1e-4, learning_rate_init=0.0001)
@@ -42,6 +43,7 @@ saida = mlp.predict(X_test)
 pesos = mlp.coefs_
 for i in range(len(pesos)):
 	savetxt('pesos' + str(i) + '.csv', pesos[i], delimiter=',')
+joblib.dump(mlp, 'mlp.pkl') 
 
 print("Rotulo: ", y_test)
 print(" Predicao: ", saida)
